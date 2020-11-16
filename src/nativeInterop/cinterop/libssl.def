@@ -1,0 +1,4 @@
+headers = C:/Users/carlo/IdeaProjects/curl_teste/src/nativeInterop/cinterop/openssl/ssl.h
+libraryPaths = C:/Users/carlo/IdeaProjects/curl_teste/src/nativeInterop/cinterop
+staticLibraries = libssl.a
+linkerOpts.mingw = -lws2_32 -lwldap32 -lcrypt32

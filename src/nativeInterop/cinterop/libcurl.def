@@ -1,0 +1,4 @@
+headers = C:/Users/carlo/IdeaProjects/curl_teste/src/nativeInterop/cinterop/curl/curl.h
+libraryPaths = C:/Users/carlo/IdeaProjects/curl_teste/src/nativeInterop/cinterop
+staticLibraries = libcurl.a
+linkerOpts.mingw = -lws2_32 -lwldap32
