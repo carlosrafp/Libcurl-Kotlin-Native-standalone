@@ -1,4 +1,67 @@
-headers = C:/Users/carlo/IdeaProjects/curl_teste/src/nativeInterop/cinterop/curl/curl.h
-libraryPaths = C:/Users/carlo/IdeaProjects/curl_teste/src/nativeInterop/cinterop
+headers = C:/java/projects/curl_teste/src/nativeInterop/cinterop/curl/curl.h
+libraryPaths = C:/java/projects/curl_teste/src/nativeInterop/cinterop
 staticLibraries = libcurl.a
 linkerOpts.mingw = -lws2_32 -lwldap32
+
+---
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+typedef struct MemoryStruct {
+  char *memory;
+  size_t size;
+} MemoryStruct;
+
+char* alocarString(int i){
+    char* buf = malloc(i);
+    return buf;
+}
+
+MemoryStruct* retornaStruct(){
+    //MemoryStruct i;
+    //i.memory = malloc(1);
+    //i.size = 1;
+    MemoryStruct *j = (MemoryStruct *) malloc (sizeof(MemoryStruct));
+    j->size = 1;
+    j->memory = malloc(1);
+    //*j= i;
+    return j;
+}
+
+size_t copiarBuf(MemoryStruct *in, char *out){
+   size_t len = in->size;
+   int i = 0;
+   for (i=0;i<len;i++){
+      out[i] = in->memory[i];
+   }
+   return len;
+}
+
+size_t bufsize(MemoryStruct *in){
+   return in->size;
+}
+
+typedef size_t  (*MyFun)(void *,size_t,size_t,void *);
+
+
+static size_t
+WriteMemoryCallback(void *contents, size_t size, size_t nmemb, void *userp)
+{
+  size_t realsize = size * nmemb;
+  struct MemoryStruct *mem = (struct MemoryStruct *)userp;
+  mem->memory = realloc(mem->memory, mem->size + realsize + 1);
+  if(mem->memory == NULL) {
+    /* out of memory! */
+    printf("not enough memory (realloc returned NULL)\n");
+    return 0;
+  }
+  memcpy(&(mem->memory[mem->size]), contents, realsize);
+  mem->size += realsize;
+  mem->memory[mem->size] = 0;
+  return realsize;
+}
+
+MyFun supply_fun() {
+  return WriteMemoryCallback;
+}
