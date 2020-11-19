@@ -29,10 +29,10 @@ data class Path (internal val path: String) {
         get() = if(kotlin.native.Platform.osFamily == OsFamily.WINDOWS) "/ " else "\\ "
 
     val fileName
-        get() = absolutePath.substringAfterLast('/')
+        get() = absolutePath.substringAfterLast(fileSaperator)
 
     val parent: String
-        get() = absolutePath.substringBeforeLast('/')
+        get() = absolutePath.substringBeforeLast(fileSaperator)
 
     val resolve
         get() = absolutePath.replace(" ", nameSpace)

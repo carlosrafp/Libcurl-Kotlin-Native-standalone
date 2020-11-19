@@ -10,6 +10,7 @@ open class InputStream {
 
     private lateinit var file : File
     private var fd: CPointer<FILE>?
+    private var pos:Long = 0L
 
     constructor(path: String) {
         file = File(path).apply { validate }
@@ -18,16 +19,19 @@ open class InputStream {
             throw FileNotFoundException(this.file.absolutePath, "Cannot read file")
     }
 
-    constructor(file: File): this(file.absolutePath) {
+    constructor(file: File): this(file.absolutePath)
+    /*
+    {
         this.file = file
         fd = fopen(file.absolutePath, "rb")
         if (this.fd == null)
             throw FileNotFoundException(this.file.absolutePath, "Cannot read file")
     }
+    */
 
-    private var contentSize = nativeHeap.alloc<stat>().apply { stat(file.absolutePath, this.ptr) }.st_size -1
+    private var contentSize = (nativeHeap.alloc<stat>().apply { stat(file.absolutePath, this.ptr) }.st_size -1).toLong()
 
-    private var bytesRead = 0L
+    //private var bytesRead = 0L
 
     private fun readBytes(bytes: ByteArray): ssize_t {
         return bytes.usePinned {
@@ -35,27 +39,32 @@ open class InputStream {
         }
     }
 
-    fun len(): Long{
-        return contentSize.toLong()
-    }
+    fun size(): Long = contentSize
+
+    fun pos(): Long = pos
 
     fun read(buffer: ByteArray): ByteArray {
-        bytesRead += readBytes(buffer)
+        pos += readBytes(buffer)
         //if (ret == 0L) break; /* EOF */
         //if (ret == -1L) { break; /* Handle error */ }
         return buffer
     }
 
     fun read(chunk: Int): ByteArray {
-        val dbuff = if (contentSize-bytesRead > chunk) chunk else (contentSize-bytesRead).convert()
+        val dbuff = if (contentSize-pos > chunk) chunk else (contentSize-pos).convert()
         return read(ByteArray(dbuff))
     }
 
     fun read() = read(1)[0]
 
-    fun skip(n: Long): Long = fseek(fd, n.convert(), SEEK_SET).toLong()
+    fun seek(n: Long):Long {
+        if (fseek(this.fd, n.convert(), SEEK_SET) !=0 )
+            throw FileNotFoundException(this.file.absolutePath, "fseek error")
+        this.pos = n
+        return n
+    }
 
-    fun available() = bytesRead < contentSize
+    fun available() = contentSize - pos
 
     fun getFD() = fd
 
