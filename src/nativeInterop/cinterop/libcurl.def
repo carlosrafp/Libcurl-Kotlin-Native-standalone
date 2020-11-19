@@ -19,13 +19,9 @@ char* alocarString(int i){
 }
 
 MemoryStruct* retornaStruct(){
-    //MemoryStruct i;
-    //i.memory = malloc(1);
-    //i.size = 1;
     MemoryStruct *j = (MemoryStruct *) malloc (sizeof(MemoryStruct));
-    j->size = 1;
+    j->size = 0;
     j->memory = malloc(1);
-    //*j= i;
     return j;
 }
 
