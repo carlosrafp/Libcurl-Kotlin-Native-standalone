@@ -8,15 +8,17 @@ import platform.posix.*
 
 open class InputStream {
 
-    private lateinit var file : File
+    private var file : File
     private var fd: CPointer<FILE>?
     private var pos:Long = 0L
+    private var contentSize =  0L
 
     constructor(path: String) {
-        file = File(path).apply { validate }
+        this.file = File(path).apply { validate }
         fd = fopen(file.absolutePath, "rb")
         if (this.fd == null)
             throw FileNotFoundException(this.file.absolutePath, "Cannot read file")
+        this.contentSize = (nativeHeap.alloc<stat>().apply { stat(file.absolutePath, this.ptr) }.st_size -1).toLong()
     }
 
     constructor(file: File): this(file.absolutePath)
@@ -28,8 +30,6 @@ open class InputStream {
             throw FileNotFoundException(this.file.absolutePath, "Cannot read file")
     }
     */
-
-    private var contentSize = (nativeHeap.alloc<stat>().apply { stat(file.absolutePath, this.ptr) }.st_size -1).toLong()
 
     //private var bytesRead = 0L
 
