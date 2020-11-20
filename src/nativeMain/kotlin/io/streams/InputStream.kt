@@ -33,9 +33,9 @@ open class InputStream {
 
     //private var bytesRead = 0L
 
-    private fun readBytes(bytes: ByteArray): ssize_t {
+    private fun readBytes(bytes: ByteArray, len: Int): ssize_t {
         return bytes.usePinned {
-            fread(it.addressOf(0), 1, bytes.size.convert(),fd).convert()
+            fread(it.addressOf(0), 1, len.convert(),fd).convert()
         }
     }
 
@@ -43,17 +43,42 @@ open class InputStream {
 
     fun pos(): Long = pos
 
-    fun read(buffer: ByteArray): ByteArray {
-        pos += readBytes(buffer)
+    fun read(buffer: ByteArray): Int {
+        return read(buffer,buffer.size)            //attempt to read all the buffer if available
+    }
+
+    fun read(buffer: ByteArray, chunkSize: Int): Int {   // reads a chunk from the stream to the buffer and
+                                                                 // returns the num of bytes read
+        var dbuff = if (this.available()  > chunkSize) chunkSize else this.available().convert()
+        dbuff = readBytes(buffer,dbuff).toInt()
+        pos += dbuff
         //if (ret == 0L) break; /* EOF */
         //if (ret == -1L) { break; /* Handle error */ }
+        return dbuff
+    }
+
+    fun read(chunk: Int): ByteArray { // returns a chunk of the stream as ByteArray
+        val dbuff = if (this.available()  > chunk) chunk else this.available().convert()
+        val buffer = ByteArray(dbuff)
+        read(buffer,dbuff)
         return buffer
     }
 
-    fun read(chunk: Int): ByteArray {
-        val dbuff = if (contentSize-pos > chunk) chunk else (contentSize-pos).convert()
-        return read(ByteArray(dbuff))
+    fun readAll(): ByteArray { // returns all the stream since the beginning as ByteArray
+        if (pos != 0L ) seek(0L)
+        val dbuff = this.available()
+        val buffer = ByteArray(dbuff.toInt())
+        read(buffer,dbuff.toInt())
+        return buffer
     }
+
+    fun readRemaining(): ByteArray { // returns all the stream since the beginning as ByteArray
+        val dbuff = this.available()
+        val buffer = ByteArray(dbuff.toInt())
+        read(buffer,dbuff.toInt())
+        return buffer
+    }
+
 
     fun read() = read(1)[0]
 
