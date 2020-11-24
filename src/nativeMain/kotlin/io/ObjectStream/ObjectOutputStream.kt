@@ -11,6 +11,13 @@ import io.buffer.AdaptiveBuffer
 class ObjectOutputStream {
 
     private val buf: AdaptiveBuffer
+    private val TC_NULL = 0x70.toByte()
+    private val TC_OBJECT = 0x73.toByte()
+    private val TC_LONGSTRING = 0x7C.toByte()
+    private val TC_STRING = 0x74.toByte()
+    private val TC_ARRAY = 0x75.toByte()
+    private val TC_CLASSDESC = 0x72.toByte()
+
 
     constructor(ownbuf: ByteArray) {
         buf = AdaptiveBuffer(ownbuf)
@@ -25,11 +32,29 @@ class ObjectOutputStream {
     }
 
     fun writeBoolean(value: Boolean) {
-        buf.writebyte((if (value) 1 else 0).toByte())
+        buf.writeByte((if (value) 1 else 0).toByte())
     }
 
     fun writeChar(value: Char) {
-        buf.writebyte(value.toByte())
+        buf.writeByte(value.toByte())
+    }
+
+    fun write(value: Any?){
+        if (value == null){
+            buf.writeByte(TC_NULL);
+        }
+        if (value is String) writeString(value)
+        else if (value is Number){
+            if (value is Float) writeFloat(value)
+            else if (value is Double) writeDouble(value)
+            else if (value is Char || value is Byte) buf.writeByte(value.toByte())
+            else if (value is Short) writeShort(value)
+            else if (value is Int) writeInt(value)
+            else if (value is Long) writeLong(value)
+        }
+        else if (value is ByteArray) writeBytes(value)
+        // ....
+
     }
 
     fun writeShort(value: Short) {
@@ -94,12 +119,42 @@ class ObjectOutputStream {
         writeUTF(s, getUTFLength(s))
     }
 
+    fun writeString(s: String) {
+        val utflen: Long = getUTFLength(s)
+        if (utflen <= 0xFFFF) {
+            buf.writeByte(TC_STRING)
+            writeUTF(s, utflen)
+        } else {
+            buf.writeByte(TC_LONGSTRING)
+            writeLongUTF(s, utflen)
+        }
+    }
+
     fun writeBytes(s: String) {
-        buf.write(s.encodeToByteArray())
+        buf.writeByte(TC_ARRAY) // codigo para array
+
+        val b = s.encodeToByteArray()
+        writeInt(b.size)
+        buf.write(b)
     }
 
     fun writeBytes(b: ByteArray) {
-        buf.write(b)
+        buf.writeByte(TC_ARRAY)
+        buf.writeByte(TC_CLASSDESC);
+        writeUTF("[B"); // nome da classe  - byteArray name = "[B"
+        // out.writeLong(getSerialVersionUID());
+        //byte flags = 0; flags |= ObjectStreamConstants.SC_SERIALIZABLE;  ==> 2
+        buf.writeByte(2);
+        writeShort(0); // ==> zero no caso
+        //bout.setBlockDataMode(true); //????
+        buf.writeByte(120); // TC_ENDBLOCKDATA
+        writeNull();
+        writeInt(b.size)
+        buf.write(b) // tem que especificar o tamanho primeiro
+    }
+
+    fun writeNull(){
+        buf.writeByte(TC_NULL);
     }
 
     private fun writeUTFBody(s: String, utflen: Long) {
@@ -140,7 +195,7 @@ class ObjectOutputStream {
             writeBytes(s);
         }
         else{
-            writeUTFBody(s,utflen);
+            writeUTFBody(s, utflen);
         }
     }
     fun writeLongUTF(s: String) {
@@ -153,7 +208,7 @@ class ObjectOutputStream {
             writeBytes(s);
         }
         else{
-            writeUTFBody(s,utflen);
+            writeUTFBody(s, utflen);
         }
     }
 

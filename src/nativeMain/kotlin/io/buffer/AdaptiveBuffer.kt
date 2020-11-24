@@ -77,7 +77,7 @@ class AdaptiveBuffer {
         this.count += count
     }
 
-    fun writebyte(b: Byte){
+    fun writeByte(b: Byte){
         write(byteArrayOf(b),0,1)
     }
 
