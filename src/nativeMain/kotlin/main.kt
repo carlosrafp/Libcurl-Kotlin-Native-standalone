@@ -13,6 +13,33 @@ import kotlin.random.nextUBytes
 
 fun main() {
 
+    /// AdaptiveBuffer and ObjectOutputStream test
+    println("float size = ${sizeOf<float_tVar>()}")
+    val buf = AdaptiveBuffer()
+    val buf2 = ByteArray(4)
+    buf2.setIntAt(0,1634951491)
+    val a = ObjectOutputStream(buf)
+    a.writeInt(1634951491)   // equivalente a "casa"
+    //a.putShort(24899)    // equivalente a "ca"...
+    //a.putShort(24947)    // equivalente a ..."sa"
+    //a.putFloat(2.8059795E20F)  // equivalente a "casa"
+    println("float = ${a.toByteArray().getFloatAt(0)}")
+    println("int = ${a.toByteArray().getIntAt(0)}")
+    val b = ObjectInputStream(buf)
+    println("float = ${b.readFloat()}")
+    a.writeShort(24899)
+    a.writeShort(24947)
+    a.writeUTF("\r\nEste é um teste de UTF-8!! Não sei se vai dar certo, mas coloquei bastante esforço!\r\n" +
+            "Este é um teste de UTF-8!! Não sei se vai dar certo, mas coloquei bastante esforço!\r\n" +
+            "Este é um teste de UTF-8!! Não sei se vai dar certo, mas coloquei bastante esforço!\r\n" +
+            "Este é um teste de UTF-8!! Não sei se vai dar certo, mas coloquei bastante esforço!\r\n" +
+            "Este é um teste de UTF-8!! Não sei se vai dar certo, mas coloquei bastante esforço!")
+    val arq2 = OutputStream("teste2.txt")
+    arq2.write(a.toByteArray())
+    arq2.write("\r\n".encodeToByteArray())
+    arq2.write(buf2)
+    arq2.close()
+    
     ////////////////////gzip test
     val file = gzopen("teste.zip", "wb");
     val r = gzprintf(file, ", %s!", "hello")
