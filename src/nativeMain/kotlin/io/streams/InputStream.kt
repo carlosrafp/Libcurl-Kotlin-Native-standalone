@@ -14,7 +14,7 @@ open class InputStream {
     private var contentSize =  0L
 
     constructor(path: String) {
-        this.file = File(path).apply { validate }
+        this.file = File(path).apply { validate } // file should exist
         fd = fopen(file.absolutePath, "rb")
         if (this.fd == null)
             throw FileNotFoundException(this.file.absolutePath, "Cannot read file")
@@ -22,16 +22,6 @@ open class InputStream {
     }
 
     constructor(file: File): this(file.absolutePath)
-    /*
-    {
-        this.file = file
-        fd = fopen(file.absolutePath, "rb")
-        if (this.fd == null)
-            throw FileNotFoundException(this.file.absolutePath, "Cannot read file")
-    }
-    */
-
-    //private var bytesRead = 0L
 
     private fun readBytes(bytes: ByteArray, len: Int): ssize_t {
         return bytes.usePinned {
@@ -52,8 +42,6 @@ open class InputStream {
         var dbuff = if (this.available()  > chunkSize) chunkSize else this.available().convert()
         dbuff = readBytes(buffer,dbuff).toInt()
         pos += dbuff
-        //if (ret == 0L) break; /* EOF */
-        //if (ret == -1L) { break; /* Handle error */ }
         return dbuff
     }
 
@@ -79,9 +67,10 @@ open class InputStream {
         return buffer
     }
 
-
-    fun read() = read(1)[0]
-
+    fun read() = read(1)[0]  //readByte
+    
+    fun readByte() = read()
+    
     fun seek(n: Long):Long {
         if (fseek(this.fd, n.convert(), SEEK_SET) !=0 )
             throw FileNotFoundException(this.file.absolutePath, "fseek error")
@@ -94,6 +83,5 @@ open class InputStream {
     fun getFD() = fd
 
     fun close() = fclose(fd)
-
-    //val dbuff = if (contentSize-bytesRead > buffer.size) buffer.size.toInt() else (contentSize-bytesRead)
+    
 }
