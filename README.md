@@ -1,4 +1,4 @@
-# libcurl
+# libcurl kotlin-native - standalone version
 kotlin native libcurl
 
 Libcurl static 64bit library, with zlib and SSL support, compiled with mingw64.
