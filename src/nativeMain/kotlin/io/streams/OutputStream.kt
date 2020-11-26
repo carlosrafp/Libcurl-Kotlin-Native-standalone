@@ -48,15 +48,22 @@ open class OutputStream {
     fun write(bytes: ByteArray) = writeBytes(bytes)
     fun write(bytes: ByteArray, len: Int) = writeBytes(bytes,len)
 
-    fun writefromOffset(bytes: ByteArray, offset: Long): Long {
-        return writefromOffset(bytes,offset,bytes.size)
+    fun writefromOffset(bytes: ByteArray, DestOffset: Long): Long {
+        return writefromOffset(bytes,0,DestOffset,bytes.size)
     }
-    fun writefromOffset(bytes: ByteArray, Destoffset: Long, len: Int): Long {
+    fun writefromOffset(bytes: ByteArray, DestOffset: Long, len: Int): Long {
         // allows writing from DestOffset even in append mode
-        seek(Destoffset)
-        writeBytes(bytes,len)
+        return writefromOffset(bytes,0,DestOffset,bytes.size)
+    }
+
+    fun writefromOffset(bytes: ByteArray, SrcOffset: Int, Destoffset: Long, len: Int): Long {
+        // allows writing from DestOffset even in append mode
+        if (bytes.size < len + SrcOffset)
+            throw IndexOutOfBoundsException("Not enough bytes in source ByteArray")
+        seek(Destoffset) // seek to file offset
+        writeBytes(bytes.copyOfRange(SrcOffset,SrcOffset + len),len)
         this.pos = contentSize
-        return seek(pos)
+        return seek(pos) // returns to the end of the stream
     }
 
     fun seek(n: Long):Long {
