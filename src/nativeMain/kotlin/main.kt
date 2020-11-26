@@ -1,4 +1,7 @@
 import io.File
+import io.ObjectStream.ObjectInputStream
+import io.ObjectStream.ObjectOutputStream
+import io.buffer.AdaptiveBuffer
 import io.streams.InputStream
 import io.streams.OutputStream
 import kotlinx.cinterop.*
@@ -8,13 +11,14 @@ import zlib.gzopen
 import zlib.gzprintf
 import libcrypto.*
 import platform.posix.free
+import kotlin.native.identityHashCode
 import kotlin.random.Random
 import kotlin.random.nextUBytes
 
 fun main() {
 
-    /// AdaptiveBuffer and ObjectOutputStream test
-    println("float size = ${sizeOf<float_tVar>()}")
+
+/// AdaptiveBuffer and ObjectOutputStream test
     val buf = AdaptiveBuffer()
     val buf2 = ByteArray(4)
     buf2.setIntAt(0,1634951491)
@@ -29,7 +33,7 @@ fun main() {
     println("float = ${b.readFloat()}")
     a.writeShort(24899)
     a.writeShort(24947)
-    a.writeUTF("\r\nEste é um teste de UTF-8!! Não sei se vai dar certo, mas coloquei bastante esforço!\r\n" +
+    a.writeString("\r\nEste é um teste de UTF-8!! Não sei se vai dar certo, mas coloquei bastante esforço!\r\n" +
             "Este é um teste de UTF-8!! Não sei se vai dar certo, mas coloquei bastante esforço!\r\n" +
             "Este é um teste de UTF-8!! Não sei se vai dar certo, mas coloquei bastante esforço!\r\n" +
             "Este é um teste de UTF-8!! Não sei se vai dar certo, mas coloquei bastante esforço!\r\n" +
@@ -66,7 +70,6 @@ fun main() {
         arq.write(site.encodeToByteArray())
         arq.close()
     }
-    println("trying $site")
 
     val chave = nativeHeap.alloc<AES_KEY>()
     val key = Random.nextUBytes(16)
@@ -131,7 +134,12 @@ fun main() {
 
     ///////////////libcurl test
 
-    val chunk = retornaStruct() // struct que recebera os dados de CURL
+    //val chunk = retornaStruct() // struct que recebera os dados de CURL
+    val chunk = nativeHeap.alloc<MemoryStruct>() // tres linhas substituem a anterior
+    chunk.size = 0.convert()
+    //chunk.memory = alocarString(1)
+    chunk.memory = nativeHeap.allocArray<ByteVar>(1)
+    //val callback = supply_fun()
 
     val curl = curl_easy_init()
     if (curl != null) {
@@ -142,7 +150,8 @@ fun main() {
         curl_easy_setopt(curl, CURLOPT_FRESH_CONNECT, 1L)
 
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, supply_fun());
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, chunk);
+        //curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, callback);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, chunk.ptr); // nativeHeap.alloc permite o ptr
         curl_easy_setopt(curl, CURLOPT_USERAGENT, "mozilla/5.0");
 
         curl_easy_setopt(curl, CURLOPT_CAINFO, "cacert.pem");
@@ -151,15 +160,16 @@ fun main() {
         if (res != CURLE_OK) {
             println("curl_easy_perform() failed ${curl_easy_strerror(res)?.toKString()}")
         }
-        //val tam = chunk?.pointed?.size?.toInt() ?: 0
-        val tam = bufsize(chunk)
-        val resposta = ByteArray(tam.toInt())
-        copiarBuf(chunk,resposta.refTo(0))
+        //val tam = bufsize(chunk).toInt()
+        val tam = chunk.size.toInt()
+        val resposta = ByteArray(tam)
+        copiarBuf(chunk.ptr,resposta.refTo(0))
         println("lidos ${tam.toInt()} bytes")
         arq = OutputStream("resp.txt")
         arq.write(resposta)
         arq.close()
-        liberarStruct(chunk)
+        //liberarStruct(chunk)
+        nativeHeap.free(chunk)
 
         curl_easy_cleanup(curl)
     }
