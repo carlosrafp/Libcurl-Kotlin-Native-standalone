@@ -1,8 +1,12 @@
 package io.ObjectStream
 
+import io.ObjectStream.ObjectStreamConstants.TC_ARRAY
+import io.ObjectStream.ObjectStreamConstants.TC_CLASSDESC
+import io.ObjectStream.ObjectStreamConstants.TC_LONGSTRING
+import io.ObjectStream.ObjectStreamConstants.TC_NULL
+import io.ObjectStream.ObjectStreamConstants.TC_STRING
 import io.buffer.AdaptiveBuffer
-
-
+import kotlin.native.identityHashCode
 
 
 //import CUtils.*
@@ -11,13 +15,6 @@ import io.buffer.AdaptiveBuffer
 class ObjectOutputStream {
 
     private val buf: AdaptiveBuffer
-    private val TC_NULL = 0x70.toByte()
-    private val TC_OBJECT = 0x73.toByte()
-    private val TC_LONGSTRING = 0x7C.toByte()
-    private val TC_STRING = 0x74.toByte()
-    private val TC_ARRAY = 0x75.toByte()
-    private val TC_CLASSDESC = 0x72.toByte()
-
 
     constructor(ownbuf: ByteArray) {
         buf = AdaptiveBuffer(ownbuf)
@@ -52,7 +49,7 @@ class ObjectOutputStream {
             else if (value is Int) writeInt(value)
             else if (value is Long) writeLong(value)
         }
-        else if (value is ByteArray) writeBytes(value)
+        else if (value is ByteArray) writeByteArray(value)
         // ....
 
     }
@@ -130,7 +127,7 @@ class ObjectOutputStream {
         }
     }
 
-    fun writeBytes(s: String) {
+    fun writeByteArray(s: String) {
         buf.writeByte(TC_ARRAY) // codigo para array
 
         val b = s.encodeToByteArray()
@@ -138,19 +135,30 @@ class ObjectOutputStream {
         buf.write(b)
     }
 
-    fun writeBytes(b: ByteArray) {
+    fun writeBytes(b: ByteArray){
+        writeInt(b.size)
+        buf.write(b)
+    }
+
+    fun writeBytes(s: String){
+        val b = s.encodeToByteArray()
+        writeInt(b.size)
+        buf.write(b)
+    }
+
+    fun writeByteArray(b: ByteArray) { // not yet fully implemented
         buf.writeByte(TC_ARRAY)
         buf.writeByte(TC_CLASSDESC);
         writeUTF("[B"); // nome da classe  - byteArray name = "[B"
-        // out.writeLong(getSerialVersionUID());
+        writeInt(b.identityHashCode()); // simulate UUID
+        writeInt(b.contentHashCode());  // simulate UUID
         //byte flags = 0; flags |= ObjectStreamConstants.SC_SERIALIZABLE;  ==> 2
-        buf.writeByte(2);
-        writeShort(0); // ==> zero no caso
-        //bout.setBlockDataMode(true); //????
-        buf.writeByte(120); // TC_ENDBLOCKDATA
-        writeNull();
+        //buf.writeByte(2);
+        //writeShort(0);
+        //buf.writeByte(120); // TC_ENDBLOCKDATA
+        //writeNull();
         writeInt(b.size)
-        buf.write(b) // tem que especificar o tamanho primeiro
+        buf.write(b)
     }
 
     fun writeNull(){
