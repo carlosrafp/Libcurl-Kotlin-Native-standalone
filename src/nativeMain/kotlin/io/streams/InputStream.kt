@@ -5,6 +5,9 @@ import io.FileNotFoundException
 import kotlinx.cinterop.*
 import platform.posix.*
 
+/**
+ *  based on https://github.com/kavanmevada/kotlin-native-io
+ * **/
 
 open class InputStream {
 

@@ -156,7 +156,7 @@ fun main() {
 
 
 
-    /*  // same using c function calls/interop (see libcurl.def)
+    /*  // same using c function calls/interop (see libcurl.def), dont uses AdaptiveBuffer
 
      //val chunk = returnStruct() // struct to receive data, can replace the next three lines
      val chunk = nativeHeap.alloc<MemoryStruct>()

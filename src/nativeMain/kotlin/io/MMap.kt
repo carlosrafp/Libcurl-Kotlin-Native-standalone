@@ -1,5 +1,10 @@
 package io
 
+
+/**
+ *  based on https://github.com/kavanmevada/kotlin-native-io
+ * **/
+
 /*
 import kotlinx.cinterop.*
 import platform.posix.*

@@ -8,7 +8,7 @@ import platform.posix.FILENAME_MAX
 import platform.posix.getcwd
 
 /**
- *  Path Class declaration
+ *  based on https://github.com/kavanmevada/kotlin-native-io
  * **/
 
 data class Path (internal val path: String) {

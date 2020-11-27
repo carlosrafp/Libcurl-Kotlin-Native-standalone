@@ -6,8 +6,9 @@ import kotlinx.cinterop.nativeHeap
 import kotlinx.cinterop.ptr
 import platform.posix.*
 
+
 /**
- *  File Class Declaration
+ *  based on https://github.com/kavanmevada/kotlin-native-io
  * **/
 
 data class File (internal val filePath: Path) {

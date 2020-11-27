@@ -1,5 +1,10 @@
 package io.buffer
 
+
+/**
+ *  based on https://github.com/localazy/kotlin-mpp-wininet/blob/master/src/windowsMain/kotlin/com/localazy/example/tools/AdaptiveBuffer.kt
+ * **/
+
 class AdaptiveBuffer {
 
     private var buf: ByteArray
