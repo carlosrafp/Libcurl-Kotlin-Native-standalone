@@ -14,8 +14,8 @@ import platform.posix.free
 import kotlin.random.Random
 import kotlin.random.nextUBytes
 
-fun main() {
 
+fun main() {
 
     /// AdaptiveBuffer and ObjectOutputStream test
     val buf = AdaptiveBuffer()
@@ -32,19 +32,19 @@ fun main() {
     println("float = ${b.readFloat()}")
     a.writeShort(24899)
     a.writeShort(24947)
-    a.writeString("\r\nEste é um teste de UTF-8!! Não sei se vai dar certo, mas coloquei bastante esforço!\r\n" +
-            "Este é um teste de UTF-8!! Não sei se vai dar certo, mas coloquei bastante esforço!\r\n" +
-            "Este é um teste de UTF-8!! Não sei se vai dar certo, mas coloquei bastante esforço!\r\n" +
-            "Este é um teste de UTF-8!! Não sei se vai dar certo, mas coloquei bastante esforço!\r\n" +
-            "Este é um teste de UTF-8!! Não sei se vai dar certo, mas coloquei bastante esforço!")
-    val arq2 = OutputStream("teste2.txt")
+    a.writeString("\r\nThis is an UTF-8 string writting test · Using special chars to really test functionality: § µ ¶\r\n" +
+            "This is an UTF-8 string writting test · Using special chars to really test functionality: § µ ¶\n" +
+            "This is an UTF-8 string writting test · Using special chars to really test functionality: § µ ¶\n" +
+            "This is an UTF-8 string writting test · Using special chars to really test functionality: § µ ¶\n" +
+            "This is an UTF-8 string writting test · Using special chars to really test functionality: § µ ¶")
+    val arq2 = OutputStream("test2.txt")
     arq2.write(a.toByteArray())
     arq2.write("\r\n".encodeToByteArray())
     arq2.write(buf2)
     arq2.close()
-    
+
     ////////////////////gzip test
-    val file = gzopen("teste.zip", "wb");
+    val file = gzopen("test.zip", "wb");
     val r = gzprintf(file, ", %s!", "hello")
     if (r != 8) {
         println("libz error = $r")
@@ -57,7 +57,7 @@ fun main() {
         val arq = InputStream("link.txt")
         val link = arq.readAll()
         site = link.decodeToString()
-        println("link = $link")
+        println("link = $site")
         arq.close()
     }
     catch (e: Exception){
@@ -67,49 +67,49 @@ fun main() {
         arq.write(site.encodeToByteArray())
         arq.close()
     }
-
-    val chave = nativeHeap.alloc<AES_KEY>()
+    val aesKey= nativeHeap.alloc<AES_KEY>()
     val key = Random.nextUBytes(16)
     val iv = Random.nextUBytes(16)
-    val iv2 = iv.toUByteArray()  // tem que criar outro IV porque ele reescreve sobre o IV
-    AES_set_encrypt_key(key.refTo(0),128,chave.ptr)
+    AES_set_encrypt_key(key.refTo(0),128,aesKey.ptr)
 
-    val msg = "Este éh um teste de cbc 128 usando openssl"
+    val msg = "This is a test of openssl® AES CBC 128 bits encryption"
     //println("msg.length = ${msg.length}")
     val msg_in = msg.encodeToByteArray()
 
-    println("Arquivo \"teste.txt\" existe? ${File("teste.txt").exists}")
-    var arq = OutputStream("teste.txt", false)
-    println("arq \"${arq.filename()}\" tem ${arq.size()} bytes")
+    println("File \"test.txt\" exists? ${File("test.txt").exists}")
+    var arq = OutputStream("test.txt", false)
+    println("File \"${arq.filename()}\" has ${arq.size()} bytes")
     arq.write(msg_in)
     arq.write("\r\n".encodeToByteArray())
 
     val msg_out = UByteArray(msg_in.size)
-    AES_cbc_encrypt(msg_in.asUByteArray().refTo(0),msg_out.refTo(0),msg_in.size.convert(),chave.ptr,iv.refTo(0), AES_ENCRYPT)
+    AES_cbc_encrypt(msg_in.asUByteArray().refTo(0),msg_out.refTo(0),msg_in.size.convert(),
+        aesKey.ptr,iv.toUByteArray().refTo(0), //uses toUByteArray to generate a new UByteArray and prevents overwritting
+        AES_ENCRYPT)
 
     val msg_out2 = UByteArray(msg_in.size)
     arq.write(msg_out.asByteArray())
     arq.write("\r\n".encodeToByteArray())
 
-    AES_set_decrypt_key(key.refTo(0), 128, chave.ptr); // a chave de desencriptografia nao serve para encriptografia e o iv deve ser novo
-    AES_cbc_encrypt(msg_out.refTo(0),msg_out2.refTo(0),msg_out.size.convert(),chave.ptr,iv2.refTo(0), AES_DECRYPT)
+    AES_set_decrypt_key(key.refTo(0), 128, aesKey.ptr); // encrypt key doesn't works for decrypting, must create a decrypt key
+    AES_cbc_encrypt(msg_out.refTo(0),msg_out2.refTo(0),msg_out.size.convert(),aesKey.ptr,iv.toUByteArray().refTo(0), AES_DECRYPT)
 
     arq.write(msg_out2.asByteArray())
     arq.write("\r\n".encodeToByteArray())
-    arq.write("Este eh um teste de java".encodeToByteArray())
-    println("arq \"${arq.filename()}\" tem ${arq.size()} bytes")
+    arq.write("This is a test of java".encodeToByteArray())
+    println("File \"${arq.filename()}\" has ${arq.size()} bytes")
     arq.seek(arq.pos() - 4)
     arq.write("kotlin-native".encodeToByteArray())
-    println("arq \"${arq.filename()}\" tem ${arq.size()} bytes")
+    println("File \"${arq.filename()}\" has ${arq.size()} bytes")
     arq.close()
-    nativeHeap.free(chave)
+    nativeHeap.free(aesKey)
 
 
     //val site = "https://jonnyzzz.com/blog/2018/10/29/kn-libcurl-windows/"
     println("trying $site")
 
     ///////////////libcurl test, using AdaptiveBuffer
-    
+
     val cUrlBuf = AdaptiveBuffer()  // buffer to receive cUrl data
     val bufStableRef = StableRef.create(cUrlBuf)  // stableRef to pass CPointer to cUrl
     val callback = staticCFunction {  // callback function to retrieve data
@@ -150,52 +150,53 @@ fun main() {
         arq = OutputStream("resp.txt")
         arq.write(response)
         arq.close()
+        bufStableRef.dispose()
         curl_easy_cleanup(curl)
     }
 
-     
 
-   /*  // same using c function calls/interop (see libcurl.def)
 
-    //val chunk = returnStruct() // struct to receive data, replace the next three lines
-    val chunk = nativeHeap.alloc<MemoryStruct>() // tres linhas substituem a anterior
-    chunk.size = 0.convert()
-    //chunk.memory = allocateString(1) // same as nextline
-    chunk.memory = nativeHeap.allocArray<ByteVar>(1)
-    
-    val callback = supply_fun()  // using C callback function
+    /*  // same using c function calls/interop (see libcurl.def)
 
-    val curl = curl_easy_init()
-    if (curl != null) {
-        curl_easy_setopt(curl, CURLOPT_URL, site)
-        curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L)
-        //curl_easy_setopt(curl, CURLOPT_VERBOSE, 1);
-        //curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, false)
-        curl_easy_setopt(curl, CURLOPT_FRESH_CONNECT, 1L)
+     //val chunk = returnStruct() // struct to receive data, can replace the next three lines
+     val chunk = nativeHeap.alloc<MemoryStruct>()
+     chunk.size = 0.convert()
+     //chunk.memory = allocateString(1) // same as nextline
+     chunk.memory = nativeHeap.allocArray<ByteVar>(1)
 
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, callback);
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, chunk.ptr); // nativeHeap.alloc allows  o ptr
-        //curl_easy_setopt(curl, CURLOPT_WRITEDATA, chunk); // if using returnStruct()
-        curl_easy_setopt(curl, CURLOPT_USERAGENT, "mozilla/5.0");
+     val callback = supply_fun()  // using C callback function
 
-        curl_easy_setopt(curl, CURLOPT_CAINFO, "cacert.pem");
-        //curl_easy_setopt(curl, CURLOPT_CAPATH, "\\.");
-        val res = curl_easy_perform(curl)
-        if (res != CURLE_OK) {
-            println("curl_easy_perform() failed ${curl_easy_strerror(res)?.toKString()}")
-        }
-        //val tam = bufsize(chunk).toInt()  // if using returnStruct()
-        val tam = chunk.size.toInt()
-        val response = ByteArray(tam)
-        copyBuf(chunk.ptr,response.refTo(0))
-        println("${tam.toInt()} bytes read")
-        arq = OutputStream("resp.txt")
-        arq.write(response)
-        arq.close()
-        //freeStruct(chunk)   // if using returnStruct()
-        nativeHeap.free(chunk)
-        curl_easy_cleanup(curl)
-    }
-   */
+     val curl = curl_easy_init()
+     if (curl != null) {
+         curl_easy_setopt(curl, CURLOPT_URL, site)
+         curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L)
+         //curl_easy_setopt(curl, CURLOPT_VERBOSE, 1);
+         //curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, false)
+         curl_easy_setopt(curl, CURLOPT_FRESH_CONNECT, 1L)
+
+         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, callback);
+         curl_easy_setopt(curl, CURLOPT_WRITEDATA, chunk.ptr); // nativeHeap.alloc allows  o ptr
+         //curl_easy_setopt(curl, CURLOPT_WRITEDATA, chunk); // if using returnStruct()
+         curl_easy_setopt(curl, CURLOPT_USERAGENT, "mozilla/5.0");
+
+         curl_easy_setopt(curl, CURLOPT_CAINFO, "cacert.pem");
+         //curl_easy_setopt(curl, CURLOPT_CAPATH, "\\.");
+         val res = curl_easy_perform(curl)
+         if (res != CURLE_OK) {
+             println("curl_easy_perform() failed ${curl_easy_strerror(res)?.toKString()}")
+         }
+         //val tam = bufsize(chunk).toInt()  // if using returnStruct()
+         val tam = chunk.size.toInt()
+         val response = ByteArray(tam)
+         copyBuf(chunk.ptr,response.refTo(0))
+         println("${tam.toInt()} bytes read")
+         arq = OutputStream("resp.txt")
+         arq.write(response)
+         arq.close()
+         //freeStruct(chunk)   // if using returnStruct()
+         nativeHeap.free(chunk)
+         curl_easy_cleanup(curl)
+     }
+    */
 
 }
