@@ -53,7 +53,7 @@ open class OutputStream {
     }
     fun writefromOffset(bytes: ByteArray, DestOffset: Long, len: Int): Long {
         // allows writing from DestOffset even in append mode
-        return writefromOffset(bytes,0,DestOffset,bytes.size)
+        return writefromOffset(bytes,0,DestOffset,len)
     }
 
     fun writefromOffset(bytes: ByteArray, SrcOffset: Int, Destoffset: Long, len: Int): Long {
