@@ -1,5 +1,5 @@
-headers = C:/java/projects/curl_teste/src/nativeInterop/cinterop/curl/curl.h
-libraryPaths = C:/java/projects/curl_teste/src/nativeInterop/cinterop
+headers = C:/Users/carlo/IdeaProjects/curl_teste/src/nativeInterop/cinterop/curl/curl.h
+libraryPaths = C:/Users/carlo/IdeaProjects/curl_teste/src/nativeInterop/cinterop
 staticLibraries = libcurl.a
 linkerOpts.mingw = -lws2_32 -lwldap32
 
@@ -48,6 +48,9 @@ size_t bufsize(MemoryStruct *in){
 }
 
 typedef size_t  (*MyFun)(void *,size_t,size_t,void *);
+
+
+/// WriteMemoryCallback from https://curl.se/libcurl/c/getinmemory.html
 
 static size_t
 WriteMemoryCallback(void *contents, size_t size, size_t nmemb, void *userp)
