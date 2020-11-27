@@ -14,25 +14,27 @@ typedef struct MemoryStruct {
   size_t size;
 } MemoryStruct;
 
-char* alocarString(int i){
+char* allocateString(int i){  // same as: { val x = nativeHeap.allocArray<ByteVar>(i) }
     char* buf = malloc(i);
     return buf;
 }
 
-MemoryStruct* retornaStruct(){
+MemoryStruct* returnStruct(){     // same as: { val c = nativeHeap.alloc<MemoryStruct>()
+                                   //            c.size = 0.convert()
+                                   //            c.memory = nativeHeap.allocArray<ByteVar>(1) }
     MemoryStruct *j = (MemoryStruct *) malloc (sizeof(MemoryStruct));
     j->size = 0;
     j->memory = malloc(1);
     return j;
 }
 
-void liberarStruct(MemoryStruct *j){
+void freeStruct(MemoryStruct *j){
     free(j);
     j = NULL;
     return;
 }
 
-size_t copiarBuf(MemoryStruct *in, char *out){
+size_t copyBuf(MemoryStruct *in, char *out){
    size_t len = in->size;
    int i = 0;
    for (i=0;i<len;i++){
