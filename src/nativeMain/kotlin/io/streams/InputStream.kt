@@ -68,9 +68,9 @@ open class InputStream {
     }
 
     fun read() = read(1)[0]  //readByte
-    
+
     fun readByte() = read()
-    
+
     fun seek(n: Long):Long {
         if (fseek(this.fd, n.convert(), SEEK_SET) !=0 )
             throw FileNotFoundException(this.file.absolutePath, "fseek error")
@@ -83,5 +83,5 @@ open class InputStream {
     fun getFD() = fd
 
     fun close() = fclose(fd)
-    
+
 }
