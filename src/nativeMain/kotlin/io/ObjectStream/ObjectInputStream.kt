@@ -51,9 +51,13 @@ class ObjectInputStream {
         return buf.read(8).getDoubleAt(0)
     }
 
-    fun readBytes(len: Int): ByteArray{
+    fun readBytes(): ByteArray{
         val size = readInt()
         return buf.read(size)
+    }
+
+    fun readBytes(len: Int): ByteArray{
+        return buf.read(len)
     }
 
     fun readString(): String{
@@ -79,6 +83,11 @@ class ObjectInputStream {
 
     fun readLongUTF(): String{
         val utflen = readLong()
+        val b = readBytes(utflen.toInt())
+        return b.decodeToString()
+    }
+
+    fun readLongUTF(utflen: Long): String{
         val b = readBytes(utflen.toInt())
         return b.decodeToString()
     }
