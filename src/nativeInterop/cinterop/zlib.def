@@ -1,4 +1,4 @@
-headers = C:/java/projects/curl_teste/src/nativeInterop/cinterop/zlib/zlib.h
-headerFilter = C:/java/projects/curl_teste/src/nativeInterop/cinterop/zlib/*
-libraryPaths = C:/java/projects/curl_teste/src/nativeInterop/cinterop
+headers = C:/Users/carlo/IdeaProjects/curl_teste/src/nativeInterop/cinterop/zlib/zlib.h
+headerFilter = C:/Users/carlo/IdeaProjects/curl_teste/src/nativeInterop/cinterop/zlib/*
+libraryPaths = C:/Users/carlo/IdeaProjects/curl_teste/src/nativeInterop/cinterop
 staticLibraries = libz.a
