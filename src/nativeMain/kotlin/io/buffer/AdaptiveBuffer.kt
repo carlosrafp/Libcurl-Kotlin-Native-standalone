@@ -12,11 +12,11 @@ class AdaptiveBuffer {
     private var pos: Int = 0
 
 
-    constructor() {
+    constructor() { // starts an empty buffer
         buf = ByteArray(32)
     }
 
-    constructor(ownbuf: ByteArray) {
+    constructor(ownbuf: ByteArray) {  // starts the buffer from a given ByteArray
         buf = ownbuf
         count = ownbuf.size
     }
@@ -43,10 +43,14 @@ class AdaptiveBuffer {
     fun size(): Int {
         return count
     }
-
+    
+    fun available() = count - pos
+    
     fun resetPosition() {
         pos = 0
     }
+    
+    fun getPos() = pos
 
     fun eraseAll(){
         buf = ByteArray(32)
@@ -94,6 +98,7 @@ class AdaptiveBuffer {
     fun writeFromDestOffset(buffer: ByteArray, SrcPos:Int, DestOffset: Int, count: Int){
         if (DestOffset > this.count || DestOffset < 0 || count < 0 || count > buffer.size - SrcPos)
             throw IndexOutOfBoundsException()
+        if (buffer.isEmpty() || count == 0) return // nothing to write
         val space = this.count - DestOffset
         if (count > space) expand(count - space + 1)
         arraycopy(buffer, SrcPos, buf, DestOffset, count)
@@ -119,15 +124,18 @@ class AdaptiveBuffer {
     }
 
     fun readRemaning(): ByteArray{
+        if (pos == count) return ByteArray(0)  // nothing to read
+        val lastpos = pos
         pos = count
-        return buf.copyOfRange(pos,count)
+        return buf.copyOfRange(lastpos,count)
     }
 
-    fun readFromOffset(offset: Int, count: Int): ByteArray{
+    fun readFromOffset(offset: Int, count: Int): ByteArray{  // seeks from a position on buffer and changes buffer pos
         if (count > this.count - offset)
             throw IndexOutOfBoundsException()
         pos = offset + count
-        return buf.copyOfRange(pos-count,pos)
+        if (count == 0) return ByteArray(0)         // use count 0 to repositioning of buffer pos
+        return buf.copyOfRange(offset,pos)
     }
 
 }
