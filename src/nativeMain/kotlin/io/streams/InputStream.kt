@@ -63,7 +63,7 @@ open class InputStream {
         return buffer
     }
 
-    fun readRemaining(): ByteArray { // returns all the stream since the beginning as ByteArray
+    fun readRemaining(): ByteArray { // returns the remaining bytes of the stream
         val dbuff = this.available()
         val buffer = ByteArray(dbuff.toInt())
         read(buffer,dbuff.toInt())
