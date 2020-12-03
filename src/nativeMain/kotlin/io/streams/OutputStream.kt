@@ -40,6 +40,7 @@ open class OutputStream {
     }
 
     private fun writeBytes(bytes: ByteArray, len: Int): Long {
+        if (len == 0) return 0L
         return bytes.usePinned {
             val numBytes = fwrite(it.addressOf(0), 1, len.convert(),fd).toLong()
             if (pos == contentSize) contentSize += numBytes
@@ -50,6 +51,9 @@ open class OutputStream {
     }
 
     fun write(bytes: ByteArray) = writeBytes(bytes)
+
+    fun write(s: String) = writeBytes(s.encodeToByteArray())
+
     fun write(bytes: ByteArray, len: Int) = writeBytes(bytes,len)
 
     fun writefromOffset(bytes: ByteArray, DestOffset: Long): Long {

@@ -42,7 +42,8 @@ open class InputStream {
 
     fun read(buffer: ByteArray, chunkSize: Int): Int {   // reads a chunk from the stream to the buffer and
                                                                  // returns the num of bytes read
-        var dbuff = if (this.available()  > chunkSize) chunkSize else this.available().convert()
+        var dbuff = if (this.available() > chunkSize) chunkSize else this.available().toInt()
+        if (dbuff == 0) return 0
         dbuff = readBytes(buffer,dbuff).toInt()
         pos += dbuff
         return dbuff
@@ -51,6 +52,7 @@ open class InputStream {
     fun read(chunk: Int): ByteArray { // returns a chunk of the stream as ByteArray
         val dbuff = if (this.available()  > chunk) chunk else this.available().convert()
         val buffer = ByteArray(dbuff)
+        if (dbuff == 0) return buffer
         read(buffer,dbuff)
         return buffer
     }
@@ -65,6 +67,7 @@ open class InputStream {
 
     fun readRemaining(): ByteArray { // returns the remaining bytes of the stream
         val dbuff = this.available()
+        if (dbuff == 0L) return ByteArray(0)
         val buffer = ByteArray(dbuff.toInt())
         read(buffer,dbuff.toInt())
         return buffer
